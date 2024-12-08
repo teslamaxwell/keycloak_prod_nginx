@@ -1,0 +1,37 @@
+postgresql:
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=keycloak
+      - POSTGRES_DB=keycloak
+      - POSTGRES_PASSWORD==12345secureP@$$
+    volumes:
+      - '/home/ubuntu/docker/keycloak/postgresql_data:/var/lib/docker/volumes/keycloak/db'
+    ports:
+      - "5432:5432"
+    networks:
+      macvlan:
+        ipv4_address: 192.168.1.102  # Assign a static IP from the macvlan subnet
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0.3
+    restart: always
+    command: start
+    depends_on:
+      - postgresql
+    environment:
+      - KC_PROXY_ADDRESS_FORWARDING=true
+      - KC_HOSTNAME_STRICT=false
+      - KC_HOSTNAME=keycloak.yourdomain.com
+      - KC_PROXY=edge
+      - KC_HTTP_ENABLED=true
+      - KC_DB=postgres
+      - KC_DB_USERNAME=keycloak
+      - KC_DB_PASSWORD=12345secureP@$$
+      - KC_DB_URL_HOST=192.168.1.102  # PostgreSQL IP in macvlan network
+      - KC_DB_URL_PORT=5432
+      - KC_DB_URL_DATABASE=keycloak
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    networks:
+      macvlan:
+        ipv4_address: 192.168.1.101  # Assign a static IP for Keycloak
